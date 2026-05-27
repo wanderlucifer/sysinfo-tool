@@ -5,11 +5,11 @@ import (
 	"unsafe"
 )
 
-// getDesktopPath returns the path to the current user's desktop folder.
-// Uses SHGetFolderPathW which is available on Windows XP and above.
+// getDesktopPath 返回当前用户桌面的文件夹路径
+// 使用 SHGetFolderPathW 函数（Windows XP 及以上版本支持）
 func getDesktopPath() string {
 	// CSIDL_DESKTOP = 0x0000, CSIDL_DESKTOPDIRECTORY = 0x0010
-	// We use DESKTOPDIRECTORY to get the actual filesystem path
+	// 使用 DESKTOPDIRECTORY 获取实际文件系统路径
 	const CSIDL_DESKTOPDIRECTORY = 0x0010
 
 	shell32 := syscall.NewLazyDLL("shell32.dll")
@@ -20,13 +20,13 @@ func getDesktopPath() string {
 	ret, _, _ := proc.Call(
 		0,
 		CSIDL_DESKTOPDIRECTORY,
-		0, // token (0 = current user)
+		0, // token（0 = 当前用户）
 		0, // SHGFP_TYPE_CURRENT
 		uintptr(unsafe.Pointer(&buf[0])),
 	)
 
 	if ret != 0 { // S_OK = 0
-		// Fallback: try CSIDL_DESKTOP
+		// 回退方案：尝试 CSIDL_DESKTOP
 		ret, _, _ = proc.Call(
 			0,
 			0x0000, // CSIDL_DESKTOP
@@ -35,7 +35,7 @@ func getDesktopPath() string {
 			uintptr(unsafe.Pointer(&buf[0])),
 		)
 		if ret != 0 {
-			// Try SHGetKnownFolderPath as last resort (Vista+)
+			// 最后尝试 SHGetKnownFolderPath（Vista 及以上）
 			return getDesktopPathFallback()
 		}
 	}
@@ -44,7 +44,7 @@ func getDesktopPath() string {
 }
 
 func getDesktopPathFallback() string {
-	// Use SHGetKnownFolderPath (Vista+)
+	// 使用 SHGetKnownFolderPath（Vista 及以上）
 	shell32 := syscall.NewLazyDLL("shell32.dll")
 	proc := shell32.NewProc("SHGetKnownFolderPath")
 
@@ -65,13 +65,13 @@ func getDesktopPathFallback() string {
 	)
 
 	if ret != 0 || path == nil {
-		// Final fallback
+		// 最终回退路径
 		return "C:\\Users\\Public\\Desktop"
 	}
 
 	result := ptrToString(path)
 
-	// Free the memory
+	// 释放内存
 	procCoTaskMemFree := syscall.NewLazyDLL("ole32.dll").NewProc("CoTaskMemFree")
 	if procCoTaskMemFree.Find() == nil {
 		procCoTaskMemFree.Call(uintptr(unsafe.Pointer(path)))

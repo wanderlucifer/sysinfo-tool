@@ -17,16 +17,21 @@ if exist "release" rmdir /s /q release
 mkdir release
 
 REM ==========================================
+REM Save current GOARCH and restore later
+REM ==========================================
+set SAVED_GOARCH=%GOARCH%
+
+REM ==========================================
 REM Build 64-bit version
 REM ==========================================
 echo [1/2] 正在编译 64位 版本...
-set GOARCH=amd64
-set GOOS=windows
-go build -ldflags="-s -w -H=windowsgui" -o release\sysinfo-tool_x64.exe 2>&1
+go env -w GOARCH=amd64 >nul 2>&1
+go build -ldflags="-H=windowsgui" -o release\sysinfo-tool_x64.exe 2>&1
 if %errorlevel% equ 0 (
     echo   ✓ 64位版本编译成功
 ) else (
     echo   ✗ 64位版本编译失败
+    go env -w GOARCH=%SAVED_GOARCH% >nul 2>&1
     pause
     exit /b 1
 )
@@ -35,18 +40,21 @@ REM ==========================================
 REM Build 32-bit version (XP compatible)
 REM ==========================================
 echo [2/2] 正在编译 32位 版本 (兼容Windows XP)...
-set GOARCH=386
-set GOOS=windows
-REM Go 1.18+ supports GOAMD64, for 386 no specific flag needed
-REM For XP compatibility, set the minimum OS version
-go build -ldflags="-s -w -H=windowsgui" -o release\sysinfo-tool_x86.exe 2>&1
+go env -w GOARCH=386 >nul 2>&1
+go build -ldflags="-H=windowsgui" -o release\sysinfo-tool_x86.exe 2>&1
 if %errorlevel% equ 0 (
     echo   ✓ 32位版本编译成功
 ) else (
     echo   ✗ 32位版本编译失败
+    go env -w GOARCH=%SAVED_GOARCH% >nul 2>&1
     pause
     exit /b 1
 )
+
+REM ==========================================
+REM Restore original GOARCH
+REM ==========================================
+go env -w GOARCH=%SAVED_GOARCH% >nul 2>&1
 
 echo.
 echo ==========================================

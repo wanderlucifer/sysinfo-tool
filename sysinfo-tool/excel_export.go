@@ -125,10 +125,12 @@ func exportToExcel(filePath, police, dept, cpuModel, manufactureDate, osInfo, in
 </styleSheet>`
 	x.addFile("xl/styles.xml", styles)
 
+	// 导出时间使用当前系统时间
 	now := getLocalTime()
 	exportTime := fmt.Sprintf("%04d-%02d-%02d %02d:%02d:%02d",
 		now.Year, now.Month, now.Day, now.Hour, now.Minute, now.Second)
 
+	// 所有需要写入Excel的字符串
 	allStrs := []string{
 		"系统信息采集表",
 		"责任民警", police,

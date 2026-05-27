@@ -129,11 +129,11 @@ type RECT struct {
 }
 
 type PAINTSTRUCT struct {
-	Hdc        uintptr
-	FErase     uint32
-	RcPaint    RECT
-	FRestore   uint32
-	FIncUpdate uint32
+	Hdc         uintptr
+	FErase      uint32
+	RcPaint     RECT
+	FRestore    uint32
+	FIncUpdate  uint32
 	RgbReserved [32]byte
 }
 
@@ -148,14 +148,14 @@ var (
 	g_brushSection uintptr
 	g_brushLine    uintptr
 
-	g_cpuModel       string
+	g_cpuModel        string
 	g_manufactureDate string
-	g_osInfo         string
-	g_installDate    string
-	g_browserVer     string
-	g_ipAddr         string
-	g_macAddr        string
-	g_diskSN         string
+	g_osInfo          string
+	g_installDate     string
+	g_browserVer      string
+	g_ipAddr          string
+	g_macAddr         string
+	g_diskSN          string
 
 	g_exportBtn  uintptr
 	g_refreshBtn uintptr
@@ -191,10 +191,10 @@ func main() {
 
 	hInstance, _, _ := procGetModuleHandle.Call(0)
 
-	// Create colored brushes
+	// 创建彩色画刷
 	g_brushWhite, _, _ = procCreateSolidBrush.Call(COLOR_WHITE)
-	g_brushSection, _, _ = procCreateSolidBrush.Call(0x00EEF2FF) // light blue for section headers
-	g_brushLine, _, _ = procCreateSolidBrush.Call(0x00D0D8E8)   // gray-blue for lines
+	g_brushSection, _, _ = procCreateSolidBrush.Call(0x00EEF2FF) // 浅蓝色用于分区标题
+	g_brushLine, _, _ = procCreateSolidBrush.Call(0x00D0D8E8)   // 灰蓝色用于分隔线
 
 	className := syscall.StringToUTF16Ptr("SysInfoWindowClass")
 	IDC_ARROW := uintptr(32512)
@@ -219,16 +219,16 @@ func main() {
 	}
 	_ = classAtom
 
-	// Create fonts
+	// 创建字体
 	g_font = createFont(FONT_SIZE, FW_NORMAL, "微软雅黑", "Segoe UI", "Tahoma", "Arial")
 	g_boldFont = createFont(FONT_SIZE, FW_BOLD, "微软雅黑", "Segoe UI", "Tahoma", "Arial")
 	g_headerFont = createFont(HEADER_SIZE, FW_BOLD, "微软雅黑", "Segoe UI", "Tahoma", "Arial")
 	g_titleFont = createFont(TITLE_SIZE, FW_BOLD, "微软雅黑", "Segoe UI", "Tahoma", "Arial")
 	g_smallFont = createFont(9, FW_NORMAL, "微软雅黑", "Segoe UI", "Tahoma", "Arial")
 
-	// Create main window - enlarged to accommodate all content
+	// 创建主窗口
 	style := uintptr(0x00CA0000) // WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX
-	title := syscall.StringToUTF16Ptr("系统信息采集工具 V0.1")
+	title := syscall.StringToUTF16Ptr("系统信息采集工具 v0.2")
 	hwnd, _, _ := procCreateWindowEx.Call(
 		0,
 		uintptr(unsafe.Pointer(className)),
@@ -258,7 +258,7 @@ func main() {
 		procDispatchMessage.Call(uintptr(unsafe.Pointer(&msg)))
 	}
 
-	// Cleanup brushes
+	// 清理画刷
 	if g_brushWhite != 0 {
 		procDeleteObject.Call(g_brushWhite)
 	}
@@ -479,33 +479,33 @@ func onCreate(hwnd uintptr) {
 	lh := 22
 	y := 15
 
-	// ========== Title (居中) ==========
+	// 标题（居中）
 	makeStaticCenter(hwnd, "系统信息采集工具", x, y, 600, 30, g_titleFont)
 	y += 40
 
-	// ========== Section 1: User Info ==========
+	// 第一部分：使用人信息
 	drawSectionHeader(hwnd, x, y, 600)
 	y += 28
 	makeStatic(hwnd, "▶ 使用人信息", x+5, y, 300, 22, g_headerFont)
 	y += 28
 
-	// Row: 责任民警
+	// 责任民警
 	makeStatic(hwnd, "责任民警：", x+10, y+4, lw, lh, g_boldFont)
 	editPoliceHwnd = makeEdit(hwnd, IDC_EDIT_POLICE, "", x+lw+10, y, ew-10, 27, false, g_font)
 	y += 34
 
-	// Row: 所属单位
+	// 所属单位
 	makeStatic(hwnd, "所属单位：", x+10, y+4, lw, lh, g_boldFont)
 	editDeptHwnd = makeEdit(hwnd, IDC_EDIT_DEPT, "", x+lw+10, y, ew-10, 27, false, g_font)
 	y += 40
 
-	// ========== Section 2: 硬件信息 (CPU+出厂日期) ==========
+	// 第二部分：硬件信息（CPU+出厂日期）
 	drawSectionHeader(hwnd, x, y, 600)
 	y += 28
 	makeStatic(hwnd, "▶ 硬件信息", x+5, y, 300, 22, g_headerFont)
 	y += 28
 
-	// CPU
+	// CPU型号
 	makeStatic(hwnd, "CPU型号：", x+10, y+3, lw, lh, g_boldFont)
 	txtCPUHwnd = makeEdit(hwnd, 0, g_cpuModel, x+lw+10, y, ew-10, 24, true, g_font)
 	y += 28
@@ -515,7 +515,7 @@ func onCreate(hwnd uintptr) {
 	txtMftHwnd = makeEdit(hwnd, 0, g_manufactureDate, x+lw+10, y, ew-10, 24, true, g_font)
 	y += 30
 
-	// ========== Section 3: System Info ==========
+	// 第三部分：系统信息
 	drawSectionHeader(hwnd, x, y, 600)
 	y += 28
 	makeStatic(hwnd, "▶ 系统信息", x+5, y, 300, 22, g_headerFont)
@@ -543,7 +543,7 @@ func onCreate(hwnd uintptr) {
 
 	y += 10
 
-	// ========== Buttons ==========
+	// 按钮
 	btnW := 140
 	btnH := 32
 	gap := 30
@@ -554,10 +554,10 @@ func onCreate(hwnd uintptr) {
 	g_exportBtn = makeButton(hwnd, IDC_BTN_EXPORT, "   导出Excel   ", startX+btnW+gap, y, btnW, btnH, g_boldFont)
 	y += btnH + 25
 
-	// ========== Footer ==========
+	// 页脚
 	drawSectionHeader(hwnd, x+5, y-5, 585)
 	y += 8
-	makeStatic(hwnd, "作者：董士魁    版本：V0.1    适用：Windows XP ~ Windows 11    32位/64位", x+10, y, 580, 18, g_smallFont)
+	makeStatic(hwnd, "作者：董士魁    版本：v0.2    适用：Windows XP ~ Windows 11    32位/64位", x+10, y, 580, 18, g_smallFont)
 }
 
 func drawSectionHeader(hwnd uintptr, x, y, w int) {
